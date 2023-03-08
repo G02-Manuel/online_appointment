@@ -2,10 +2,10 @@ odoo.define('s2u_online_appoinment.main', function (require) {
     'use strict';
 
     var core = require('web.core');
-    var publicWidget = require('website.content.snippets.animation');
+    var publicWidget = require('web.public.widget');
     var _t = core._t;
 
-    publicWidget.registry.OnlineAppointment = publicWidget.Class.extend({
+    publicWidget.registry.OnlineAppointment = publicWidget.Widget.extend({
         selector: '#s2u_online_appointment',
         init: function () {
             this._super.apply(this, arguments);
@@ -131,7 +131,7 @@ odoo.define('s2u_online_appoinment.main', function (require) {
 
     }),
 
-    publicWidget.registry.OnlineAppointmentPortal = publicWidget.Class.extend({
+    publicWidget.registry.OnlineAppointmentPortal = publicWidget.Widget.extend({
         selector: '#online_appointment_interaction',
         start: function () {
             var self = this;

@@ -6,7 +6,7 @@ from odoo import models, fields, api, _
 class AppointmentRegistration(models.Model):
     _name = 's2u.appointment.registration'
     _description = 'Appointment Registration'
-    _inherit = ['portal.mixin', 'mail.thread', 'mail.activity.mixin']
+    _inherit = ['portal.mixin', 'mail.thread.cc', 'mail.activity.mixin']
 
     event_id = fields.Many2one('calendar.event', string='Event', required=True, ondelete='cascade')
     partner_id = fields.Many2one('res.partner', string='Contact', ondelete='cascade')
