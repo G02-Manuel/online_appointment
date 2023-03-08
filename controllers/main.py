@@ -293,30 +293,6 @@ class OnlineAppointment(http.Controller):
             }
             return request.render('s2u_online_appointment.thanks', values)
 
-    def recurrent_events_overlapping(self, appointee_id, event_start, event_stop):
-        query = """
-                    SELECT e.id FROM calendar_event e, calendar_event_res_partner_rel ep  
-                        WHERE ep.res_partner_id = %s AND
-                              e.active = true AND
-                              e.recurrency = true AND
-                              e.final_date >= %s AND
-                              e.id = ep.calendar_event_id                                         
-        """
-        request.env.cr.execute(query, (self.appointee_id_to_partner_id(appointee_id),
-                                       datetime.datetime.now().strftime('%Y-%m-%d')))
-        res = request.env.cr.fetchall()
-        event_ids = [r[0] for r in res]
-        for event in request.env['calendar.event'].sudo().browse(event_ids):
-            recurrent_dates = event._get_recurrent_dates_by_event()
-            for recurrent_start_date, recurrent_stop_date in recurrent_dates:
-                recurrent_start_date_short = recurrent_start_date.strftime('%Y-%m-%d %H:%M')
-                recurrent_stop_date_short = recurrent_stop_date.strftime('%Y-%m-%d %H:%M')
-                if (event_start <= recurrent_start_date_short <= event_stop) or (
-                        recurrent_start_date_short <= event_start and recurrent_stop_date_short >= event_stop) or (
-                        event_start <= recurrent_stop_date_short <= event_stop):
-                    return True
-        return False
-
     def check_slot_is_possible(self, option_id, appointment_date, appointee_id, slot_id):
 
         if not appointment_date:
@@ -351,8 +327,7 @@ class OnlineAppointment(http.Controller):
         query = """
                 SELECT e.id FROM calendar_event e, calendar_event_res_partner_rel ep  
                     WHERE ep.res_partner_id = %s AND
-                          e.active = true AND
-                          (e.recurrency = false or e.recurrency is null) AND
+                          e.active = true AND                          
                           e.id = ep.calendar_event_id AND 
                         ((e.start >= %s AND e.start <= %s) OR
                              (e.start <= %s AND e.stop >= %s) OR
@@ -364,8 +339,7 @@ class OnlineAppointment(http.Controller):
                                        event_start, event_stop))
         res = request.env.cr.fetchall()
         if not res:
-            if not self.recurrent_events_overlapping(appointee_id, event_start, event_stop):
-                return True
+            return True
 
         return False
 
@@ -416,8 +390,7 @@ class OnlineAppointment(http.Controller):
             query = """
                     SELECT e.id FROM calendar_event e, calendar_event_res_partner_rel ep  
                         WHERE ep.res_partner_id = %s AND
-                              e.active = true AND
-                              (e.recurrency = false or e.recurrency is null) AND 
+                              e.active = true AND                               
                               e.id = ep.calendar_event_id AND 
                             ((e.start >= %s AND e.start <= %s) OR
                              (e.start <= %s AND e.stop >= %s) OR
@@ -429,11 +402,10 @@ class OnlineAppointment(http.Controller):
                                            event_start, event_stop))
             res = request.env.cr.fetchall()
             if not res:
-                if not self.recurrent_events_overlapping(appointee_id, event_start, event_stop):
-                    free_slots.append({
-                        'id': slot.id,
-                        'timeslot': functions.float_to_time(slot.slot)
-                    })
+                free_slots.append({
+                    'id': slot.id,
+                    'timeslot': functions.float_to_time(slot.slot)
+                })
 
         return free_slots
 
@@ -492,8 +464,7 @@ class OnlineAppointment(http.Controller):
             query = """
                     SELECT e.id FROM calendar_event e, calendar_event_res_partner_rel ep  
                         WHERE ep.res_partner_id = %s AND 
-                              e.active = true AND
-                              (e.recurrency = false or e.recurrency is null) AND
+                              e.active = true AND                              
                               e.id = ep.calendar_event_id AND  
                             ((e.start >= %s AND e.start <= %s) OR
                              (e.start <= %s AND e.stop >= %s) OR
@@ -505,8 +476,7 @@ class OnlineAppointment(http.Controller):
                                            d['start'], d['stop']))
             res = request.env.cr.fetchall()
             if not res:
-                if not self.recurrent_events_overlapping(appointee_id, d['start'], d['stop']):
-                    days_with_free_slots[d['date']] = True
+                days_with_free_slots[d['date']] = True
         return days_with_free_slots
 
     @http.route('/online-appointment/timeslots', type='json', auth='public', website=True)

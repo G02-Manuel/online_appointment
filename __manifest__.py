@@ -2,7 +2,7 @@
 
 {
     'name': 'Online appointment',
-    'version': '13.0.1.2',
+    'version': '14.0.1.2',
     'author': 'Solutions2use',
     'price': 0.0,
     'currency': 'EUR',
